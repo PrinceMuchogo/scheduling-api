@@ -21,13 +21,14 @@ def get_db():
 def upload_data(payload: schemas.UploadDataRequest, db: Session = Depends(get_db)):
     # Insert Courses
     for course in payload.courses:
-        db_course = models.Course(course_code=course.course_code, name=course.name)
+        db_course = models.Course(id=course.id, course_code=course.course_code, name=course.name, faculty = course.faculty)
         db.add(db_course)
     db.commit()
 
     # Insert Students
     for student in payload.students:
         db_student = models.Student(
+            id = student.id,
             name=student.name,
             registration_number=student.registration_number
         )
@@ -35,8 +36,8 @@ def upload_data(payload: schemas.UploadDataRequest, db: Session = Depends(get_db
         db.commit()
         db.refresh(db_student)
 
-        for course_code in student.courses:
-            course = db.query(models.Course).filter_by(course_code=course_code).first()
+        for courseId in student.courses:
+            course = db.query(models.Course).filter_by(id=courseId).first()
             if course:
                 db_student_course = models.StudentCourse(
                     student_id=db_student.id,
@@ -47,13 +48,14 @@ def upload_data(payload: schemas.UploadDataRequest, db: Session = Depends(get_db
 
     # Insert Rooms
     for room in payload.rooms:
-        db_room = models.Room(room_code=room.room_code, name=room.name, capacity=room.capacity)
+        db_room = models.Room(id=room.id, room_code=room.room_code, name=room.name, capacity=room.capacity)
         db.add(db_room)
     db.commit()
 
     # Insert Timeslots
     for timeslot in payload.timeslots:
         db_timeslot = models.Timeslot(
+            id=timeslot.id,
             timeslot_code=timeslot.timeslot_code,
             date=timeslot.date,
             start_time=timeslot.start_time,

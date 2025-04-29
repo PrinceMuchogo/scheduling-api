@@ -17,6 +17,7 @@ class Course(Base):
     id = Column(Integer, primary_key=True, index=True)
     course_code = Column(String, unique=True, nullable=False)
     name = Column(String, nullable=False)
+    faculty = Column(String, nullable=False)
 
     students = relationship("StudentCourse", back_populates="course")
 
