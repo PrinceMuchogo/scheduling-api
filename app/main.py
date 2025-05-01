@@ -1,10 +1,10 @@
 # main.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
-# from sqlalchemy.orm import Session
-from app import  schemas
+from sqlalchemy.orm import Session
+from app import  schemas, models
 from app.scheduler import run_genetic_scheduler  # your GHA code here
-# from app.database import SessionLocal, engine
+from app.database import SessionLocal, engine
 
 app = FastAPI(
     title="Scheduling API",
@@ -18,64 +18,64 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# models.Base.metadata.create_all(bind=engine)
+models.Base.metadata.create_all(bind=engine)
 
 # Dependency
-# def get_db():
-#     db = SessionLocal()
-#     try:
-#         yield db
-#     finally:
-#         db.close()
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
-# @app.post("/upload_data/")
-# def upload_data(payload: schemas.UploadDataRequest, db: Session = Depends(get_db)):
-#     # Insert Courses
-#     for course in payload.courses:
-#         db_course = models.Course(id=course.id, course_code=course.course_code, name=course.name, faculty = course.faculty)
-#         db.add(db_course)
-#     db.commit()
+@app.post("/upload_data/")
+def upload_data(payload: schemas.UploadDataRequest, db: Session = Depends(get_db)):
+    # Insert Courses
+    for course in payload.courses:
+        db_course = models.Course(id=course.id, course_code=course.course_code, name=course.name, faculty = course.faculty)
+        db.add(db_course)
+    db.commit()
 
-#     # Insert Students
-#     for student in payload.students:
-#         db_student = models.Student(
-#             id = student.id,
-#             name=student.name,
-#             registration_number=student.registration_number
-#         )
-#         db.add(db_student)
-#         db.commit()
-#         db.refresh(db_student)
+    # Insert Students
+    for student in payload.students:
+        db_student = models.Student(
+            id = student.id,
+            name=student.name,
+            registration_number=student.registration_number
+        )
+        db.add(db_student)
+        db.commit()
+        db.refresh(db_student)
 
-#         for courseId in student.courses:
-#             course = db.query(models.Course).filter_by(id=courseId).first()
-#             if course:
-#                 db_student_course = models.StudentCourse(
-#                     student_id=db_student.id,
-#                     course_id=course.id
-#                 )
-#                 db.add(db_student_course)
-#     db.commit()
+        for courseId in student.courses:
+            course = db.query(models.Course).filter_by(id=courseId).first()
+            if course:
+                db_student_course = models.StudentCourse(
+                    student_id=db_student.id,
+                    course_id=course.id
+                )
+                db.add(db_student_course)
+    db.commit()
 
-#     # Insert Rooms
-#     for room in payload.rooms:
-#         db_room = models.Room(id=room.id, room_code=room.room_code, name=room.name, capacity=room.capacity)
-#         db.add(db_room)
-#     db.commit()
+    # Insert Rooms
+    for room in payload.rooms:
+        db_room = models.Room(id=room.id, room_code=room.room_code, name=room.name, capacity=room.capacity)
+        db.add(db_room)
+    db.commit()
 
-#     # Insert Timeslots
-#     for timeslot in payload.timeslots:
-#         db_timeslot = models.Timeslot(
-#             id=timeslot.id,
-#             timeslot_code=timeslot.timeslot_code,
-#             date=timeslot.date,
-#             start_time=timeslot.start_time,
-#             end_time=timeslot.end_time
-#         )
-#         db.add(db_timeslot)
-#     db.commit()
+    # Insert Timeslots
+    for timeslot in payload.timeslots:
+        db_timeslot = models.Timeslot(
+            id=timeslot.id,
+            timeslot_code=timeslot.timeslot_code,
+            date=timeslot.date,
+            start_time=timeslot.start_time,
+            end_time=timeslot.end_time
+        )
+        db.add(db_timeslot)
+    db.commit()
 
-#     return {"message": "Data uploaded successfully"}
+    return {"message": "Data uploaded successfully"}
 
 @app.post("/generate_schedule/")
 def generate_schedule(payload: schemas.UploadDataRequest):
