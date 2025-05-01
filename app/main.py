@@ -47,7 +47,7 @@ def upload_data(payload: schemas.UploadDataRequest, db: Session = Depends(get_db
         db.commit()
         db.refresh(db_student)
 
-        for courseId in student.courses:
+        for courseId in student.student_courses:
             course = db.query(models.Course).filter_by(id=courseId).first()
             if course:
                 db_student_course = models.StudentCourse(
